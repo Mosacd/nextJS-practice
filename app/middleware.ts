@@ -1,24 +1,9 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
-
-export function middleware(request: NextRequest) {
-  const protectedRoutes = ['/dashboard'];
-  const authToken = request.cookies.get('next-auth.session-token') || request.cookies.get('__Secure-next-auth.session-token');
-
-  const isProtected = protectedRoutes.some((route) =>
-    request.nextUrl.pathname.startsWith(route)
-  );
-
-  if (isProtected && !authToken) {
-    const url = new URL('/login', request.url);
-    url.searchParams.set('callbackUrl', request.url);
-    return NextResponse.redirect(url);
-  }
-
-  return NextResponse.next();
-}
-
-// Add the config here
+import NextAuth from 'next-auth';
+import { authConfig } from './auth.config';
+ 
+export default NextAuth(authConfig).auth;
+ 
 export const config = {
-  matcher: ['/dashboard/:path*'], // Protect all `/dashboard` routes
+  // https://nextjs.org/docs/app/building-your-application/routing/middleware#matcher
+  matcher: ['/((?!api|_next/static|_next/image|.*\\.png$).*)'],
 };
