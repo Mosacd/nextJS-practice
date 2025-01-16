@@ -103,8 +103,12 @@ export async function fetchFilteredInvoices(
 ) {
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
 
+  const client = await createClient();
+  await client.connect();
   try {
-    const invoices = await sql<InvoicesTable>`
+    console.log('Fetching filtered invoices...');
+    
+    const invoices = await client.sql<InvoicesTable>`
       SELECT
         invoices.id,
         invoices.amount,
@@ -129,12 +133,17 @@ export async function fetchFilteredInvoices(
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error('Failed to fetch invoices.');
+  }finally {
+    client.end();
   }
 }
 
 export async function fetchInvoicesPages(query: string) {
+  const client = createClient();
+  await client.connect();
   try {
-    const count = await sql`SELECT COUNT(*)
+    console.log('Fetching total invoice count...');
+    const count = await client.sql`SELECT COUNT(*)
     FROM invoices
     JOIN customers ON invoices.customer_id = customers.id
     WHERE
@@ -150,12 +159,16 @@ export async function fetchInvoicesPages(query: string) {
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error('Failed to fetch total number of invoices.');
+  }finally {
+    client.end();
   }
 }
 
 export async function fetchInvoiceById(id: string) {
+  const client = createClient();
+  await client.connect();
   try {
-    const data = await sql<InvoiceForm>`
+    const data = await client.sql<InvoiceForm>`
       SELECT
         invoices.id,
         invoices.customer_id,
@@ -170,7 +183,8 @@ export async function fetchInvoiceById(id: string) {
       // Convert amount from cents to dollars
       amount: invoice.amount / 100,
     }));
-
+    
+    console.log(invoice); // Invoice is an empty array []
     return invoice[0];
   } catch (error) {
     console.error('Database Error:', error);
@@ -179,8 +193,10 @@ export async function fetchInvoiceById(id: string) {
 }
 
 export async function fetchCustomers() {
+  const client = createClient();
+  await client.connect();
   try {
-    const data = await sql<CustomerField>`
+    const data = await client.sql<CustomerField>`
       SELECT
         id,
         name
@@ -193,12 +209,16 @@ export async function fetchCustomers() {
   } catch (err) {
     console.error('Database Error:', err);
     throw new Error('Failed to fetch all customers.');
+  } finally {
+    client.end();
   }
 }
 
 export async function fetchFilteredCustomers(query: string) {
+  const client = createClient();
+  await client.connect();
   try {
-    const data = await sql<CustomersTableType>`
+    const data = await client.sql<CustomersTableType>`
 		SELECT
 		  customers.id,
 		  customers.name,
